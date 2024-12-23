@@ -1,72 +1,69 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider, useAuthContext } from './context/AuthContext';
+import Login from './components/Login';
+import AdminDashboard from './components/AdminDashboard';
 import './App.css';
 
 function App() {
-  // State for storing users and crime categories
-  const [users, setUsers] = useState([]);
-  const [categories, setCategories] = useState([]);
-
-  // Fetch users and crime categories when the component mounts
-  useEffect(() => {
-    // Fetch users from the API
-    axios.get('http://localhost:8000/api/users/')
-      .then((response) => {
-        setUsers(response.data);
-      })
-      .catch((error) => {
-        console.error('There was an error fetching the users!', error);
-      });
-
-    // Fetch crime categories from the API
-    axios.get('http://localhost:8000/api/crime-categories/')
-      .then((response) => {
-        setCategories(response.data);
-      })
-      .catch((error) => {
-        console.error('There was an error fetching the crime categories!', error);
-      });
-  }, []);
-
   return (
-    <div className="App">
-      <header className="App-header">
-        <h1>Crime Reporting System</h1>
-      </header>
+    <AuthProvider>
+      <Router>
+        <div className="App">
+          <header className="bg-gray-800 text-white py-4">
+            <h1 className="text-2xl font-bold text-center">
+              Criminal Investigation System
+            </h1>
+          </header>
 
-      {/* User List */}
-      <section className="user-list">
-        <h2>User List</h2>
-        <ul>
-          {users.length > 0 ? (
-            users.map((user) => (
-              <li key={user.id}>
-                {user.username} - {user.role}
-              </li>
-            ))
-          ) : (
-            <li>Loading users...</li>
-          )}
-        </ul>
-      </section>
+          <main className="container mx-auto px-4">
+            <Routes>
+              <Route
+                path="/login"
+                element={
+                  <Login 
+                    onLoginSuccess={({ token, user, isAdmin }) => {
+                      if (isAdmin) {
+                        return <Navigate to="/admin-dashboard" replace />;
+                      } else {
+                        return <Navigate to="/user-dashboard" replace />;
+                      }
+                    }}
+                  />
+                }
+              />
 
-      {/* Crime Category List */}
-      <section className="crime-category-list">
-        <h2>Crime Categories</h2>
-        <ul>
-          {categories.length > 0 ? (
-            categories.map((category) => (
-              <li key={category.id}>
-                <strong>{category.category_name}</strong>: {category.description}
-              </li>
-            ))
-          ) : (
-            <li>Loading crime categories...</li>
-          )}
-        </ul>
-      </section>
-    </div>
+              <Route
+                path="/admin-dashboard"
+                element={
+                  <ProtectedRoute>
+                    <AdminDashboard />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route path="*" element={<Navigate to="/login" replace />} />
+            </Routes>
+          </main>
+        </div>
+      </Router>
+    </AuthProvider>
   );
 }
+
+// ProtectedRoute component
+const ProtectedRoute = ({ children }) => {
+  const { authState } = useAuthContext();
+
+  if (!authState || !authState.token || !authState.user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (authState.user.role !== 'admin') {
+    return <Navigate to="/login" replace />;
+  }
+
+  return children;
+};
 
 export default App;

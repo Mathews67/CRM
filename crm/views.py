@@ -1,13 +1,10 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.views import View
 from rest_framework import viewsets
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
 from .models import CrimeCategory, Crime, Officer, ReportingOfficer, CourtCase, Witness, PoliceStation, Complaint
 from .forms import CrimeForm, OfficerForm, ReportingOfficerForm, CourtCaseForm, WitnessForm, PoliceStationForm, ComplaintForm
 from .serializers import CrimeCategorySerializer, CrimeSerializer, OfficerSerializer, ReportingOfficerSerializer, CourtCaseSerializer, WitnessSerializer, PoliceStationSerializer, ComplaintSerializer
-
+from .auth_views import LoginAPIView 
 
 # Regular Views for Crime Categories
 
@@ -196,6 +193,39 @@ class ComplaintCreateView(View):
             return redirect('complaint-list')
         return render(request, 'complaint_create.html', {'form': form})
 
+# API View for Officer ViewSet
 class OfficerViewSet(viewsets.ModelViewSet):
     queryset = Officer.objects.all()
     serializer_class = OfficerSerializer
+
+class CrimeCategoryViewSet(viewsets.ModelViewSet):
+    queryset = CrimeCategory.objects.all()
+    serializer_class = CrimeCategorySerializer
+
+class CrimeViewSet(viewsets.ModelViewSet):
+    queryset = Crime.objects.all()
+    serializer_class = CrimeSerializer
+
+class OfficerViewSet(viewsets.ModelViewSet):
+    queryset = Officer.objects.all()
+    serializer_class = OfficerSerializer
+
+class ReportingOfficerViewSet(viewsets.ModelViewSet):
+    queryset = ReportingOfficer.objects.all()
+    serializer_class = ReportingOfficerSerializer
+
+class CourtCaseViewSet(viewsets.ModelViewSet):
+    queryset = CourtCase.objects.all()
+    serializer_class = CourtCaseSerializer
+
+class WitnessViewSet(viewsets.ModelViewSet):
+    queryset = Witness.objects.all()
+    serializer_class = WitnessSerializer
+
+class PoliceStationViewSet(viewsets.ModelViewSet):
+    queryset = PoliceStation.objects.all()
+    serializer_class = PoliceStationSerializer
+
+class ComplaintViewSet(viewsets.ModelViewSet):
+    queryset = Complaint.objects.all()
+    serializer_class = ComplaintSerializer

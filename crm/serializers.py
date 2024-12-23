@@ -1,29 +1,16 @@
 from rest_framework import serializers
-from .models import (
-    CriminalRecord,
-    Evidence,
-    CrimeCategory,
-    ReportingOfficer,
-    PoliceStation,
-    Complaint,
-    Crime,
-    Officer,
-    CourtCase,
-    PoliceStation,
-    Complainant,
-    Complaint,
-    Witness
-)
 from django.contrib.auth.models import User
-
+from .models import (
+    CriminalRecord, Evidence, CrimeCategory, ReportingOfficer, PoliceStation, 
+    Complaint, Crime, Officer, CourtCase, Complainant, Witness
+)
 
 # -------------------- Serializers for Models -------------------
 
-# User Serializer for registering users and associating them with ReportingOfficer
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'username', 'first_name', 'last_name', 'email', 'password']
+        fields = ['id', 'username', 'first_name', 'last_name', 'email', 'role', 'password']
         extra_kwargs = {'password': {'write_only': True}}
 
     def create(self, validated_data):
@@ -154,6 +141,7 @@ class OfficerSerializer(serializers.ModelSerializer):
         officer = Officer.objects.create(user=user, **validated_data)
         return officer
 
+
 # -------------------- Serializers for CourtCase -------------------
 
 class CourtCaseSerializer(serializers.ModelSerializer):
@@ -182,7 +170,7 @@ class ComplainantSerializer(serializers.ModelSerializer):
         return complainant
 
 
-# serializers.py
+# -------------------- Serializers for Witness -------------------
 
 class WitnessSerializer(serializers.ModelSerializer):
     class Meta:
@@ -190,7 +178,60 @@ class WitnessSerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'testimony', 'crime_record']
     
     def create(self, validated_data):
-        # You can add any custom creation logic here if necessary
         witness = Witness.objects.create(**validated_data)
         return witness
 
+
+# -------------------- API Views -------------------
+
+from rest_framework import viewsets
+from .models import (
+    CriminalRecord, Evidence, CrimeCategory, ReportingOfficer, PoliceStation, 
+    Complaint, Crime, Officer, CourtCase, Complainant, Witness
+)
+
+from .serializers import (
+    CriminalRecordSerializer, EvidenceSerializer, CrimeCategorySerializer, ReportingOfficerSerializer, 
+    PoliceStationSerializer, ComplaintSerializer, CrimeSerializer, OfficerSerializer, 
+    CourtCaseSerializer, ComplainantSerializer, WitnessSerializer
+)
+from rest_framework.views import APIView
+from rest_framework import viewsets, permissions
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework_simplejwt.tokens import RefreshToken
+from django.contrib.auth import authenticate, login
+from .models import CriminalRecord, Evidence, Crime, Officer, ReportingOfficer, PoliceStation, Complaint, CrimeCategory, CourtCase, Complainant, Witness
+
+class LoginSerializer(serializers.Serializer):
+    username = serializers.CharField()
+    password = serializers.CharField(write_only=True)
+
+    def validate(self, data):
+        user = authenticate(username=data['username'], password=data['password'])
+        if user is None:
+            raise serializers.ValidationError("Invalid credentials")
+        return {'user': user}
+
+
+class LoginAPIView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request, *args, **kwargs):
+        from .serializers import LoginSerializer  # Importing inside the method to avoid circular import
+        
+        serializer = LoginSerializer(data=request.data)
+        if serializer.is_valid():
+            user = serializer.validated_data['user']
+            
+            # Generate JWT token
+            refresh = RefreshToken.for_user(user)
+            access_token = str(refresh.access_token)
+
+            # Return response with access token
+            return Response({
+                'refresh': str(refresh),
+                'access': access_token
+            }, status=status.HTTP_200_OK)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
