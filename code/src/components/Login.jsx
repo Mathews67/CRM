@@ -31,7 +31,7 @@ const Login = ({ onLoginSuccess }) => {
 
     try {
       // Get auth token
-      const response = await fetch('http://localhost:8000/api/token/', {
+      const response = await fetch('http://localhost:8000/api/login/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -50,8 +50,8 @@ const Login = ({ onLoginSuccess }) => {
       localStorage.setItem('authToken', token);
 
       // Fetch user data
-      const userResponse = await fetch('http://localhost:8000/api/token/', {
-        method: 'GET',
+      const userResponse = await fetch('http://localhost:8000/api/login/', {
+        method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
         },

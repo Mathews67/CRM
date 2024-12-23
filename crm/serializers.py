@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
 from .models import (
     CriminalRecord, Evidence, CrimeCategory, ReportingOfficer, PoliceStation, 
@@ -7,6 +8,8 @@ from .models import (
 
 # -------------------- Serializers for Models -------------------
 
+User = get_user_model()  # This will get the custom User model defined
+
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
@@ -14,8 +17,37 @@ class UserSerializer(serializers.ModelSerializer):
         extra_kwargs = {'password': {'write_only': True}}
 
     def create(self, validated_data):
+        """
+        Create a user instance and handle password hashing using the custom manager.
+        """
+        password = validated_data.pop('password', None)  # Remove password from validated data
+
+        # Create the user using the custom manager's method
         user = User.objects.create_user(**validated_data)
+
+        # If password was provided, set it
+        if password:
+            user.set_password(password)
+
+        user.save()
         return user
+
+    def update(self, instance, validated_data):
+        """
+        Update user details, handle password update if provided.
+        """
+        password = validated_data.pop('password', None)  # Remove password if it's being updated
+
+        # Update other fields except password
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+
+        # Update password if provided
+        if password:
+            instance.set_password(password)
+
+        instance.save()
+        return instance
 
 
 # ReportingOfficer Serializer
@@ -213,25 +245,3 @@ class LoginSerializer(serializers.Serializer):
             raise serializers.ValidationError("Invalid credentials")
         return {'user': user}
 
-
-class LoginAPIView(APIView):
-    permission_classes = [permissions.AllowAny]
-
-    def post(self, request, *args, **kwargs):
-        from .serializers import LoginSerializer  # Importing inside the method to avoid circular import
-        
-        serializer = LoginSerializer(data=request.data)
-        if serializer.is_valid():
-            user = serializer.validated_data['user']
-            
-            # Generate JWT token
-            refresh = RefreshToken.for_user(user)
-            access_token = str(refresh.access_token)
-
-            # Return response with access token
-            return Response({
-                'refresh': str(refresh),
-                'access': access_token
-            }, status=status.HTTP_200_OK)
-
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

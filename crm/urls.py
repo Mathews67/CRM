@@ -18,5 +18,5 @@ router.register(r'complaints', views.ComplaintViewSet)
 
 urlpatterns = [
     path('api/', include(router.urls)),
-    path('api/login/', views.LoginAPIView.as_view(), name='login'),
+    path('login/', LoginAPIView.as_view(), name='login'),
 ]

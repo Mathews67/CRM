@@ -5,7 +5,6 @@ from datetime import datetime
 from django.utils import timezone
 from datetime import date
 
-# Custom User Model for RBAC
 class User(AbstractUser):
     ROLE_CHOICES = [
         ('Admin', 'Admin'),
