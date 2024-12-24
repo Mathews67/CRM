@@ -5,40 +5,49 @@ const AuthContext = createContext();
 
 // Create a provider component
 export const AuthProvider = ({ children }) => {
-  // Initialize authState with null or any default values
   const [authState, setAuthState] = useState({
-    token: null, // Store token here, if logged in
-    user: null,  // Optionally store user details
+    token: null,
+    user: null,
   });
 
-  // Function to log in the user and set token and user data
+  // Function to log in the user
   const loginUser = (token, user) => {
-    setAuthState({
-      token,
-      user,
-    });
-    localStorage.setItem('authToken', token); // Save token to localStorage
-    localStorage.setItem('user', JSON.stringify(user)); // Save user data to localStorage
-  };
+    try {
+      setAuthState({ token, user });
+      console.log('Setting authState:', { token, user }); // Log the state being set
 
-  // Function to log out the user and clear token and user data
-  const logoutUser = () => {
-    setAuthState({
-      token: null,
-      user: null,
-    });
-    localStorage.removeItem('authToken'); // Remove token from localStorage
-    localStorage.removeItem('user'); // Remove user data from localStorage
-  };
-
-  // On component mount, check if token exists in localStorage
-  useEffect(() => {
-    const token = localStorage.getItem('authToken');
-    const user = JSON.parse(localStorage.getItem('user'));
-    if (token && user) {
-      setAuthState({ token, user }); // Set the authState from localStorage if available
+      localStorage.setItem('authToken', token);
+      localStorage.setItem('user', JSON.stringify(user));
+    } catch (error) {
+      console.error('Error saving user data to localStorage:', error);
     }
-  }, []); // This effect runs only once on mount
+  };
+
+  // Function to log out the user
+  const logoutUser = () => {
+    try {
+      setAuthState({ token: null, user: null });
+
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('user');
+    } catch (error) {
+      console.error('Error removing user data from localStorage:', error);
+    }
+  };
+
+  // Check localStorage for existing token and user data
+  useEffect(() => {
+    try {
+      const token = localStorage.getItem('authToken');
+      const user = JSON.parse(localStorage.getItem('user'));
+      if (token && user) {
+        setAuthState({ token, user });
+        console.log('Retrieved authState from localStorage:', { token, user }); // Log retrieved state
+      }
+    } catch (error) {
+      console.error('Error retrieving user data from localStorage:', error);
+    }
+  }, []);
 
   return (
     <AuthContext.Provider value={{ authState, loginUser, logoutUser }}>
@@ -47,7 +56,11 @@ export const AuthProvider = ({ children }) => {
   );
 };
 
-// Custom hook to access the authContext
+// Custom hook to use the AuthContext
 export const useAuthContext = () => {
-  return useContext(AuthContext); // Access the AuthContext using useContext hook
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuthContext must be used within an AuthProvider');
+  }
+  return context;
 };

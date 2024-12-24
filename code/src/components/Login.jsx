@@ -1,12 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuthContext } from '../context/AuthContext';
+import '../styles/Login.css';
 
-const Login = ({ onLoginSuccess }) => {
+const Login = () => {
   const [formState, setFormState] = useState({
     username: '',
     password: '',
   });
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const { loginUser, user } = useAuthContext();
+  const navigate = useNavigate();
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -30,7 +35,6 @@ const Login = ({ onLoginSuccess }) => {
     }
 
     try {
-      // Get auth token
       const response = await fetch('http://localhost:8000/api/login/', {
         method: 'POST',
         headers: {
@@ -45,30 +49,15 @@ const Login = ({ onLoginSuccess }) => {
         throw new Error(data.detail || 'Invalid credentials.');
       }
 
-      // Store token
-      const token = data.access;
-      localStorage.setItem('authToken', token);
+      const { access, user } = data;
 
-      // Fetch user data
-      const userResponse = await fetch('http://localhost:8000/api/login/', {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      loginUser(access, user);
 
-      if (!userResponse.ok) {
-        throw new Error('Failed to fetch user data');
+      if (user.role === 'Admin') {
+        navigate('/AdminDashboard');
+      } else {
+        navigate('/userDashboard');
       }
-
-      const userData = await userResponse.json();
-
-      // Call the success handler with user data and token
-      onLoginSuccess({
-        token,
-        user: userData,
-        isAdmin: userData.role === 'admin',
-      });
     } catch (error) {
       setErrorMessage(error.message || 'An error occurred. Please try again.');
     } finally {
@@ -76,77 +65,79 @@ const Login = ({ onLoginSuccess }) => {
     }
   };
 
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-xl shadow-md">
-        <div>
-          <h2 className="mt-2 text-center text-3xl font-bold tracking-tight text-gray-900">
-            Sign in to your account
-          </h2>
-        </div>
+  useEffect(() => {
+    if (user) {
+      // Optionally handle something after the user is logged in
+    }
+  }, [user]);
 
+  return (
+    <div className="login-container">
+      <div className="login-card">
+        
         {errorMessage && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
-            <span className="block sm:inline">{errorMessage}</span>
+          <div className="error-message">
+            <span>{errorMessage}</span>
           </div>
         )}
 
-        <form className="mt-8 space-y-6" onSubmit={handleLogin}>
-          <div className="space-y-4 rounded-md">
-            <div>
-              <label htmlFor="username" className="block text-sm font-medium text-gray-700">
-                Username
-              </label>
+        <form onSubmit={handleLogin} className="login-form">
+          <div className="form-group">
+            <div className="input-wrapper">
+              <i className="icon fa fa-user"></i>
               <input
-                id="username"
-                name="username"
                 type="text"
-                required
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-500 focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm"
-                placeholder="Enter your username"
+                name="username"
+                placeholder="Username"
                 value={formState.username}
                 onChange={handleInputChange}
+                required
               />
             </div>
+          </div>
 
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                Password
-              </label>
+          <div className="form-group">
+            <div className="input-wrapper">
+              <i className="icon fa fa-lock"></i>
               <input
-                id="password"
-                name="password"
                 type="password"
-                required
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-500 focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm"
-                placeholder="Enter your password"
+                name="password"
+                placeholder="Password"
                 value={formState.password}
                 onChange={handleInputChange}
+                required
               />
             </div>
           </div>
 
-          <div>
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="group relative flex w-full justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isLoading ? 'Signing in...' : 'Sign in'}
-            </button>
-          </div>
+          <button
+            type="submit"
+            disabled={isLoading}
+            className={`login-button ${isLoading ? 'loading' : ''}`}
+          >
+            {isLoading ? 'Signing in...' : 'Login'}
+          </button>
         </form>
 
-        <div className="text-sm text-center text-gray-600">
-          Don't have an account?{' '}
-          <button
-            onClick={() => onLoginSuccess({ view: 'register' })}
-            className="font-medium text-blue-600 hover:text-blue-500"
-          >
-            Sign up
-          </button>
+        <div className="login-footer">
+          <p>
+            Don't have an account?{' '}
+            <button
+              onClick={() => navigate('/register')}
+              className="register-link"
+            >
+              Sign up here
+            </button>
+          </p>
         </div>
       </div>
+
+      {user && (
+        <div className="user-info">
+          <span className="user-icon">&#128100;</span>
+          <span>{user.username}</span>
+        </div>
+      )}
     </div>
   );
 };
