@@ -72,73 +72,99 @@ const Login = () => {
   }, [user]);
 
   return (
+  
     <div className="login-container">
-      <div className="login-card">
-        
-        {errorMessage && (
-          <div className="error-message">
-            <span>{errorMessage}</span>
-          </div>
-        )}
+  {/* Header Section */}
+  <header className="header">
+  <img src="/logo-crm.png" alt="Logo" className="logo" />
+    <h1>Criminal Investigation System</h1>
+    <div className="header-links">
+      <a href="/forget-password">Forget Password</a>
+      <a href="/register">Sign Up</a>
+    </div>
+  </header>
 
-        <form onSubmit={handleLogin} className="login-form">
-          <div className="form-group">
-            <div className="input-wrapper">
-              <i className="icon fa fa-user"></i>
-              <input
-                type="text"
-                name="username"
-                placeholder="Username"
-                value={formState.username}
-                onChange={handleInputChange}
-                required
-              />
-            </div>
-          </div>
+  <div className="login-card">
+    <div className="login-left">
+      <h2>Serving the people of Zambia with Justice</h2>
+    </div>
 
-          <div className="form-group">
-            <div className="input-wrapper">
-              <i className="icon fa fa-lock"></i>
-              <input
-                type="password"
-                name="password"
-                placeholder="Password"
-                value={formState.password}
-                onChange={handleInputChange}
-                required
-              />
-            </div>
-          </div>
-
-          <button
-            type="submit"
-            disabled={isLoading}
-            className={`login-button ${isLoading ? 'loading' : ''}`}
-          >
-            {isLoading ? 'Signing in...' : 'Login'}
-          </button>
-        </form>
-
-        <div className="login-footer">
-          <p>
-            Don't have an account?{' '}
-            <button
-              onClick={() => navigate('/register')}
-              className="register-link"
-            >
-              Sign up here
-            </button>
-          </p>
-        </div>
-      </div>
-
-      {user && (
-        <div className="user-info">
-          <span className="user-icon">&#128100;</span>
-          <span>{user.username}</span>
+    <div className="login-right">
+      {errorMessage && (
+        <div className="error-message">
+          <span>{errorMessage}</span>
         </div>
       )}
+
+      <form onSubmit={handleLogin} className="login-form">
+        <div className="form-group">
+          <div className="input-wrapper">
+            <i className="icon fa fa-user"></i>
+            <input
+              type="text"
+              name="username"
+              id="username"
+              placeholder=" "
+              value={formState.username}
+              onChange={handleInputChange}
+              required
+            />
+            <label htmlFor="username">Username</label>
+          </div>
+        </div>
+
+        <div className="form-group">
+          <div className="input-wrapper">
+            <i className="icon fa fa-lock"></i>
+            <input
+              type="password"
+              name="password"
+              id="password"
+              placeholder=" "
+              value={formState.password}
+              onChange={handleInputChange}
+              required
+            />
+            <label htmlFor="password">Password</label>
+          </div>
+        </div>
+
+        <button
+          type="submit"
+          disabled={isLoading}
+          className={`login-button ${isLoading ? 'loading' : ''}`}
+        >
+          {isLoading ? 'Signing in...' : 'Login'}
+        </button>
+      </form>
+
+      <div className="login-footer">
+        <p>
+          Don't have an account?{' '}
+          <button
+            onClick={() => navigate('/register')}
+            className="register-link"
+          >
+            Sign up here
+          </button>
+        </p>
+      </div>
     </div>
+  </div>
+
+  {user && (
+    <div className="user-info">
+      <span className="user-icon">&#128100;</span>
+      <span>{user.username}</span>
+    </div>
+  )}
+
+  {/* Footer Section */}
+  <footer className="footer">
+    <p>&copy; Criminal Investigation System - MT 2024</p>
+  </footer>
+</div>
+
   );
 };
 

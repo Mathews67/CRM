@@ -193,10 +193,7 @@ class ComplaintCreateView(View):
             return redirect('complaint-list')
         return render(request, 'complaint_create.html', {'form': form})
 
-# API View for Officer ViewSet
-class OfficerViewSet(viewsets.ModelViewSet):
-    queryset = Officer.objects.all()
-    serializer_class = OfficerSerializer
+# API View for all models
 
 class CrimeCategoryViewSet(viewsets.ModelViewSet):
     queryset = CrimeCategory.objects.all()

@@ -15,8 +15,8 @@ router.register(r'court-cases', views.CourtCaseViewSet)
 router.register(r'witnesses', views.WitnessViewSet)
 router.register(r'police-stations', views.PoliceStationViewSet)
 router.register(r'complaints', views.ComplaintViewSet)
-
+# URL Patterns for API routing
 urlpatterns = [
-    path('api/', include(router.urls)),
-    path('login/', LoginAPIView.as_view(), name='login'),
+    path('api/', include(router.urls)),  
+    path('login/', LoginAPIView.as_view(), name='login'),  
 ]
